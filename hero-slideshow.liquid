@@ -1,0 +1,1159 @@
+{% comment %}
+  LUXURY HERO SLIDESHOW SECTION
+  Features: Auto-play, Ken Burns effect, swipe support, dots/arrows navigation
+  Version: 1.0.0
+{% endcomment %}
+
+<!-- Hero Slideshow -->
+<section
+  id="custom-slideshow-{{ section.id }}"
+  class="cl-slideshow"
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-duration="{{ section.settings.slide_duration }}"
+  data-pause-on-hover="{{ section.settings.pause_on_hover }}"
+  data-transition="{{ section.settings.transition_type }}"
+>
+  <!-- Slides Container -->
+  <div class="cl-slideshow__slides">
+    {% assign slide_count = 0 %}
+    {% for block in section.blocks %}
+      {% if block.type == 'slide' and block.settings.enable_slide %}
+        {% assign slide_count = slide_count | plus: 1 %}
+        <div
+          class="cl-slideshow__slide {% if forloop.first %}cl-slideshow__slide--active{% endif %}"
+          data-slide-index="{{ forloop.index0 }}"
+          {{ block.shopify_attributes }}
+        >
+          <!-- Background Image with Ken Burns -->
+          <div class="cl-slideshow__bg {% if section.settings.ken_burns %}cl-slideshow__bg--ken-burns{% endif %}">
+            {% if block.settings.image != blank %}
+              <img
+                src="{{ block.settings.image | image_url: width: 2000 }}"
+                srcset="{{ block.settings.image | image_url: width: 1000 }} 1000w,
+                        {{ block.settings.image | image_url: width: 1500 }} 1500w,
+                        {{ block.settings.image | image_url: width: 2000 }} 2000w"
+                sizes="100vw"
+                alt="{{ block.settings.image_alt | default: block.settings.headline | escape }}"
+                class="cl-slideshow__image"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                width="{{ block.settings.image.width }}"
+                height="{{ block.settings.image.height }}"
+              >
+            {% else %}
+              <div class="cl-slideshow__placeholder"></div>
+            {% endif %}
+          </div>
+
+          <!-- Overlay -->
+          <div class="cl-slideshow__overlay"></div>
+
+          <!-- Content -->
+          <div class="cl-slideshow__content cl-slideshow__content--{{ block.settings.text_align }}">
+            <div class="cl-slideshow__content-inner">
+              <!-- Subheadline -->
+              {% if block.settings.subheadline != blank %}
+                <p class="cl-slideshow__subheadline">{{ block.settings.subheadline }}</p>
+              {% endif %}
+
+              <!-- Headline -->
+              {% if block.settings.headline != blank %}
+                <h2 class="cl-slideshow__headline">{{ block.settings.headline }}</h2>
+              {% endif %}
+
+              <!-- Description -->
+              {% if block.settings.description != blank %}
+                <p class="cl-slideshow__description">{{ block.settings.description }}</p>
+              {% endif %}
+
+              <!-- CTA Button -->
+              {% if block.settings.button_text != blank %}
+                <div class="cl-slideshow__cta">
+                  <a
+                    href="{{ block.settings.button_link }}"
+                    class="cl-slideshow__button cl-slideshow__button--{{ block.settings.button_style }}"
+                    {% if block.settings.button_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+                  >
+                    {{ block.settings.button_text }}
+                    {% if section.settings.show_button_arrow %}
+                      <svg class="cl-slideshow__button-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                      </svg>
+                    {% endif %}
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- Navigation Arrows -->
+  {% if section.settings.show_arrows and slide_count > 1 %}
+    <button class="cl-slideshow__arrow cl-slideshow__arrow--prev" aria-label="Previous slide">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button class="cl-slideshow__arrow cl-slideshow__arrow--next" aria-label="Next slide">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  {% endif %}
+
+  <!-- Dot Navigation -->
+  {% if section.settings.show_dots and slide_count > 1 %}
+    <div class="cl-slideshow__dots">
+      {% assign dot_index = 0 %}
+      {% for block in section.blocks %}
+        {% if block.type == 'slide' and block.settings.enable_slide %}
+          <button
+            class="cl-slideshow__dot {% if forloop.first %}cl-slideshow__dot--active{% endif %}"
+            data-slide="{{ dot_index }}"
+            aria-label="Go to slide {{ dot_index | plus: 1 }}"
+          >
+            <span class="cl-slideshow__dot-inner"></span>
+            {% if section.settings.dot_progress %}
+              <svg class="cl-slideshow__dot-progress" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            {% endif %}
+          </button>
+          {% assign dot_index = dot_index | plus: 1 %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Scroll Indicator -->
+  {% if section.settings.show_scroll_indicator %}
+    <div class="cl-slideshow__scroll-indicator">
+      <span class="cl-slideshow__scroll-text">{{ section.settings.scroll_text }}</span>
+      <div class="cl-slideshow__scroll-line">
+        <div class="cl-slideshow__scroll-line-inner"></div>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<!-- Scoped Styles -->
+<style>
+  /* Slideshow Variables */
+  #custom-slideshow-{{ section.id }} {
+    --slideshow-height: {{ section.settings.slideshow_height }};
+    --slideshow-min-height: {{ section.settings.min_height }}px;
+    --overlay-color: {{ section.settings.overlay_color }};
+    --overlay-opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --text-color: {{ section.settings.text_color }};
+    --headline-color: {{ section.settings.headline_color }};
+    --subheadline-color: {{ section.settings.subheadline_color }};
+    --button-bg: {{ section.settings.button_bg_color }};
+    --button-text: {{ section.settings.button_text_color }};
+    --button-hover-bg: {{ section.settings.button_hover_bg_color }};
+    --button-hover-text: {{ section.settings.button_hover_text_color }};
+    --transition-duration: {{ section.settings.transition_speed }}ms;
+    --content-max-width: {{ section.settings.content_width }}px;
+  }
+
+  /* Base Slideshow Styles */
+  #custom-slideshow-{{ section.id }} {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: var(--slideshow-height);
+    min-height: var(--slideshow-min-height);
+    overflow: hidden;
+    background-color: #1A1F2E;
+  }
+
+  .cl-slideshow__slides {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Individual Slide */
+  .cl-slideshow__slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease;
+  }
+
+  .cl-slideshow__slide--active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+  }
+
+  /* Slide Background */
+  .cl-slideshow__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .cl-slideshow__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .cl-slideshow__placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2D3346 0%, #1A1F2E 100%);
+  }
+
+  /* Ken Burns Effect */
+  .cl-slideshow__bg--ken-burns .cl-slideshow__image {
+    animation: none;
+    transform: scale(1);
+    transition: transform 0.5s ease;
+  }
+
+  .cl-slideshow__slide--active .cl-slideshow__bg--ken-burns .cl-slideshow__image {
+    animation: kenBurns {{ section.settings.slide_duration | times: 1000 | plus: 1000 }}ms ease-out forwards;
+  }
+
+  @keyframes kenBurns {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
+
+  /* Overlay */
+  .cl-slideshow__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      {{ section.settings.overlay_direction }},
+      rgba({{ section.settings.overlay_color | color_extract: 'red' }}, {{ section.settings.overlay_color | color_extract: 'green' }}, {{ section.settings.overlay_color | color_extract: 'blue' }}, {{ section.settings.overlay_opacity_start | divided_by: 100.0 }}) 0%,
+      rgba({{ section.settings.overlay_color | color_extract: 'red' }}, {{ section.settings.overlay_color | color_extract: 'green' }}, {{ section.settings.overlay_color | color_extract: 'blue' }}, {{ section.settings.overlay_opacity | divided_by: 100.0 }}) 100%
+    );
+    z-index: 1;
+  }
+
+  /* Content */
+  .cl-slideshow__content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: clamp(80px, 15vh, 120px) clamp(20px, 5vw, 60px);
+    z-index: 2;
+  }
+
+  .cl-slideshow__content--left {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .cl-slideshow__content--center {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .cl-slideshow__content--right {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .cl-slideshow__content-inner {
+    max-width: var(--content-max-width);
+    width: 100%;
+  }
+
+  /* Text Animations */
+  .cl-slideshow__subheadline,
+  .cl-slideshow__headline,
+  .cl-slideshow__description,
+  .cl-slideshow__cta {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .cl-slideshow__slide--active .cl-slideshow__subheadline {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.2s;
+  }
+
+  .cl-slideshow__slide--active .cl-slideshow__headline {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.4s;
+  }
+
+  .cl-slideshow__slide--active .cl-slideshow__description {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.6s;
+  }
+
+  .cl-slideshow__slide--active .cl-slideshow__cta {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.8s;
+  }
+
+  /* Typography */
+  .cl-slideshow__subheadline {
+    font-family: var(--cl-font-body, inherit);
+    font-size: clamp(0.75rem, 1.5vw, 0.9375rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--subheadline-color);
+    margin: 0 0 1rem 0;
+  }
+
+  .cl-slideshow__headline {
+    font-family: var(--cl-font-heading, inherit);
+    font-size: clamp(2rem, 6vw, {{ section.settings.headline_size }}px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--headline-color);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .cl-slideshow__description {
+    font-family: var(--cl-font-body, inherit);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0 0 2rem 0;
+    max-width: 500px;
+  }
+
+  .cl-slideshow__content--center .cl-slideshow__description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cl-slideshow__content--right .cl-slideshow__description {
+    margin-left: auto;
+  }
+
+  /* CTA Button */
+  .cl-slideshow__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-family: var(--cl-font-body, inherit);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .cl-slideshow__button--primary {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 2px solid var(--button-bg);
+  }
+
+  .cl-slideshow__button--primary:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-bg);
+    color: var(--button-hover-text);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .cl-slideshow__button--secondary {
+    background-color: transparent;
+    color: var(--button-text);
+    border: 2px solid var(--button-text);
+  }
+
+  .cl-slideshow__button--secondary:hover {
+    background-color: var(--button-text);
+    color: var(--button-bg);
+    transform: translateY(-3px);
+  }
+
+  .cl-slideshow__button--white {
+    background-color: #FFFFFF;
+    color: #1A1F2E;
+    border: 2px solid #FFFFFF;
+  }
+
+  .cl-slideshow__button--white:hover {
+    background-color: transparent;
+    color: #FFFFFF;
+    transform: translateY(-3px);
+  }
+
+  .cl-slideshow__button-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .cl-slideshow__button:hover .cl-slideshow__button-arrow {
+    transform: translateX(4px);
+  }
+
+  /* Navigation Arrows */
+  .cl-slideshow__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .cl-slideshow__arrow:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .cl-slideshow__arrow--prev {
+    left: clamp(20px, 4vw, 40px);
+  }
+
+  .cl-slideshow__arrow--next {
+    right: clamp(20px, 4vw, 40px);
+  }
+
+  .cl-slideshow__arrow svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Dot Navigation */
+  .cl-slideshow__dots {
+    position: absolute;
+    bottom: clamp(30px, 5vh, 50px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+  }
+
+  .cl-slideshow__dot {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .cl-slideshow__dot-inner {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .cl-slideshow__dot:hover .cl-slideshow__dot-inner,
+  .cl-slideshow__dot--active .cl-slideshow__dot-inner {
+    background-color: #FFFFFF;
+    transform: scale(1.2);
+  }
+
+  /* Dot Progress Circle */
+  .cl-slideshow__dot-progress {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 24px;
+    height: 24px;
+    transform: rotate(-90deg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .cl-slideshow__dot--active .cl-slideshow__dot-progress {
+    opacity: 1;
+  }
+
+  .cl-slideshow__dot-progress circle {
+    stroke: #FFFFFF;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+
+  .cl-slideshow__dot--active .cl-slideshow__dot-progress circle {
+    animation: dotProgress var(--slide-duration, 5000ms) linear forwards;
+  }
+
+  @keyframes dotProgress {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Scroll Indicator */
+  .cl-slideshow__scroll-indicator {
+    position: absolute;
+    bottom: clamp(30px, 5vh, 50px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .cl-slideshow__scroll-text {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .cl-slideshow__scroll-line {
+    width: 1px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+  }
+
+  .cl-slideshow__scroll-line-inner {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF;
+    animation: scrollLine 1.5s ease-in-out infinite;
+  }
+
+  @keyframes scrollLine {
+    0% {
+      transform: translateY(-100%);
+    }
+    50% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .cl-slideshow__arrow {
+      width: 44px;
+      height: 44px;
+    }
+
+    .cl-slideshow__arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #custom-slideshow-{{ section.id }} {
+      --slideshow-height: 100vh;
+      --slideshow-height: 100dvh;
+    }
+
+    .cl-slideshow__arrow {
+      display: none;
+    }
+
+    .cl-slideshow__content {
+      padding: clamp(60px, 12vh, 100px) 20px;
+    }
+
+    .cl-slideshow__headline {
+      font-size: clamp(1.75rem, 8vw, 2.5rem);
+    }
+
+    .cl-slideshow__description {
+      font-size: 1rem;
+    }
+
+    .cl-slideshow__button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .cl-slideshow__dots {
+      bottom: 20px;
+    }
+  }
+
+  /* Pause on hover */
+  .cl-slideshow[data-pause-on-hover="true"]:hover .cl-slideshow__dot--active .cl-slideshow__dot-progress circle {
+    animation-play-state: paused;
+  }
+</style>
+
+<!-- Slideshow JavaScript -->
+<script>
+  (function() {
+    const slideshow = document.getElementById('custom-slideshow-{{ section.id }}');
+    if (!slideshow) return;
+
+    const slides = slideshow.querySelectorAll('.cl-slideshow__slide');
+    const dots = slideshow.querySelectorAll('.cl-slideshow__dot');
+    const prevBtn = slideshow.querySelector('.cl-slideshow__arrow--prev');
+    const nextBtn = slideshow.querySelector('.cl-slideshow__arrow--next');
+
+    if (slides.length <= 1) return;
+
+    let currentSlide = 0;
+    let autoplayInterval = null;
+    let isPaused = false;
+
+    const autoplay = slideshow.dataset.autoplay === 'true';
+    const duration = parseInt(slideshow.dataset.duration) * 1000 || 5000;
+    const pauseOnHover = slideshow.dataset.pauseOnHover === 'true';
+
+    // Set CSS variable for progress animation
+    slideshow.style.setProperty('--slide-duration', duration + 'ms');
+
+    function goToSlide(index) {
+      // Wrap around
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
+
+      // Update slides
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('cl-slideshow__slide--active', i === index);
+      });
+
+      // Update dots
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('cl-slideshow__dot--active', i === index);
+      });
+
+      currentSlide = index;
+
+      // Reset autoplay timer
+      if (autoplay && !isPaused) {
+        resetAutoplay();
+      }
+    }
+
+    function nextSlide() {
+      goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentSlide - 1);
+    }
+
+    function startAutoplay() {
+      if (autoplayInterval) clearInterval(autoplayInterval);
+      autoplayInterval = setInterval(nextSlide, duration);
+    }
+
+    function stopAutoplay() {
+      if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+        autoplayInterval = null;
+      }
+    }
+
+    function resetAutoplay() {
+      stopAutoplay();
+      startAutoplay();
+    }
+
+    // Event Listeners
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        prevSlide();
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        nextSlide();
+      });
+    }
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        goToSlide(index);
+      });
+    });
+
+    // Pause on hover
+    if (pauseOnHover) {
+      slideshow.addEventListener('mouseenter', () => {
+        isPaused = true;
+        stopAutoplay();
+      });
+
+      slideshow.addEventListener('mouseleave', () => {
+        isPaused = false;
+        if (autoplay) startAutoplay();
+      });
+    }
+
+    // Touch/Swipe Support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    slideshow.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    slideshow.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
+      }
+    }
+
+    // Keyboard Navigation
+    slideshow.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key === 'ArrowRight') {
+        nextSlide();
+      }
+    });
+
+    // Make slideshow focusable for keyboard nav
+    slideshow.setAttribute('tabindex', '0');
+
+    // Start autoplay
+    if (autoplay) {
+      startAutoplay();
+    }
+
+    // Visibility API - pause when tab not visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopAutoplay();
+      } else if (autoplay && !isPaused) {
+        startAutoplay();
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Luxury Hero Slideshow",
+  "tag": "section",
+  "class": "luxury-hero-slideshow-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Slideshow Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto-play Slides",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "slide_duration",
+      "label": "Slide Duration",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "default": 5,
+      "unit": "sec"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on Hover",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "transition_type",
+      "label": "Transition Type",
+      "options": [
+        { "value": "fade", "label": "Fade" },
+        { "value": "slide", "label": "Slide" }
+      ],
+      "default": "fade"
+    },
+    {
+      "type": "range",
+      "id": "transition_speed",
+      "label": "Transition Speed",
+      "min": 300,
+      "max": 1500,
+      "step": 100,
+      "default": 800,
+      "unit": "ms"
+    },
+    {
+      "type": "checkbox",
+      "id": "ken_burns",
+      "label": "Ken Burns Effect (Slow Zoom)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "slideshow_height",
+      "label": "Slideshow Height",
+      "options": [
+        { "value": "100vh", "label": "Full Screen (100vh)" },
+        { "value": "90vh", "label": "90vh" },
+        { "value": "80vh", "label": "80vh" },
+        { "value": "70vh", "label": "70vh" }
+      ],
+      "default": "100vh"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Minimum Height",
+      "min": 400,
+      "max": 800,
+      "step": 50,
+      "default": 500,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "content_width",
+      "label": "Content Max Width",
+      "min": 400,
+      "max": 800,
+      "step": 50,
+      "default": 600,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show Navigation Arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show Dot Navigation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "dot_progress",
+      "label": "Show Progress on Dots",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Scroll Indicator"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_indicator",
+      "label": "Show Scroll Indicator",
+      "default": false,
+      "info": "Shows at bottom when dots are hidden"
+    },
+    {
+      "type": "text",
+      "id": "scroll_text",
+      "label": "Scroll Text",
+      "default": "Scroll"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay Opacity (Bottom)",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 50,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity_start",
+      "label": "Overlay Opacity (Top)",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 20,
+      "unit": "%"
+    },
+    {
+      "type": "select",
+      "id": "overlay_direction",
+      "label": "Overlay Gradient Direction",
+      "options": [
+        { "value": "to bottom", "label": "Top to Bottom" },
+        { "value": "to top", "label": "Bottom to Top" },
+        { "value": "to right", "label": "Left to Right" },
+        { "value": "to left", "label": "Right to Left" }
+      ],
+      "default": "to bottom"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "headline_size",
+      "label": "Headline Size (Desktop)",
+      "min": 36,
+      "max": 96,
+      "step": 4,
+      "default": 64,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "headline_color",
+      "label": "Headline Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "subheadline_color",
+      "label": "Subheadline Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Description Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button_arrow",
+      "label": "Show Arrow on Button",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button Text",
+      "default": "#1A1F2E"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Button Hover Background",
+      "default": "#1A1F2E"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Button Hover Text",
+      "default": "#FFFFFF"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "enable_slide",
+          "label": "Enable Slide",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background Image"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image Alt Text"
+        },
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "text",
+          "id": "subheadline",
+          "label": "Subheadline",
+          "default": "Luxury Collection"
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Headline",
+          "default": "Timeless Elegance"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Discover our exquisite collection of fine jewelry"
+        },
+        {
+          "type": "select",
+          "id": "text_align",
+          "label": "Text Alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "header",
+          "content": "Button"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button Text",
+          "default": "Explore Collection"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button Link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button Style",
+          "options": [
+            { "value": "primary", "label": "Primary (Filled)" },
+            { "value": "secondary", "label": "Secondary (Outline)" },
+            { "value": "white", "label": "White" }
+          ],
+          "default": "white"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_new_tab",
+          "label": "Open in New Tab",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Luxury Hero Slideshow",
+      "category": "Hero",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "subheadline": "Luxury Collection",
+            "headline": "Timeless Elegance",
+            "description": "Discover our exquisite collection of fine jewelry crafted with passion.",
+            "button_text": "Shop Now",
+            "text_align": "left"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "subheadline": "New Arrivals",
+            "headline": "Diamond Excellence",
+            "description": "Explore our stunning new diamond pieces, designed for the extraordinary.",
+            "button_text": "View Collection",
+            "text_align": "left"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "subheadline": "Bespoke Service",
+            "headline": "Custom Creations",
+            "description": "Create your dream piece with our expert craftsmen.",
+            "button_text": "Start Designing",
+            "text_align": "left"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
