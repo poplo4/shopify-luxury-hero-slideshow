@@ -214,6 +214,3 @@ Shopify Developer
 
 ---
 
-## Related
-
-- [Custom Header Section](https://github.com/rochdi/shopify-custom-header) - Matching header component for complete page design
